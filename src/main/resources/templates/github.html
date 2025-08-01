@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">GitHub Configuration</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c3e50 !important;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+        
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+        }
+        
+        .success-message {
+            color: #28a745;
+            font-size: 0.875rem;
+        }
+        
+        .file-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .comparison-result {
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .difference-item {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .difference-key {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .difference-value {
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin: 0.25rem 0;
+            border: 1px solid #dee2e6;
+        }
+        
+        .value-added {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .value-removed {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .value-content {
+            margin-top: 0.25rem;
+        }
+        
+        .value-content pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            margin: 0;
+            font-size: 0.875em;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .difference-key {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .file-content-display {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .file-content-display pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin: 0;
+            font-size: 0.875em;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .file-content-display code {
+            background: none;
+            padding: 0;
+            border: none;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #495057;
+            border: none;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            background-color: transparent;
+        }
+        
+        .github-header {
+            background: linear-gradient(135deg, #24292e 0%, #586069 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .dropdown-container {
+            position: relative;
+        }
+        
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .dropdown-item {
+            cursor: pointer;
+            padding: 8px 12px;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .repo-name {
+            font-weight: 500;
+        }
+        
+        .dropdown-item small {
+            font-size: 0.875em;
+            line-height: 1.2;
+        }
+        
+        .file-item {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+        
+        .file-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .file-item .badge {
+            font-size: 0.75em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-code-branch me-2"></i>
+                Config Compare Tool
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/github">
+                            <i class="fab fa-github me-1"></i>
+                            GitHub
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- GitHub Header -->
+    <section class="github-header">
+        <div class="container text-center">
+            <h1><i class="fab fa-github me-3"></i>GitHub Configuration</h1>
+            <p class="lead">Validate and compare configuration files in your GitHub repositories</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs nav-fill" id="githubTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="validation-tab" data-bs-toggle="tab" data-bs-target="#validation" type="button" role="tab">
+                    <i class="fas fa-check-circle me-2"></i>Config Validation
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="compare-files-tab" data-bs-toggle="tab" data-bs-target="#compare-files" type="button" role="tab">
+                    <i class="fas fa-file-code me-2"></i>Compare Files
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="compare-branches-tab" data-bs-toggle="tab" data-bs-target="#compare-branches" type="button" role="tab">
+                    <i class="fas fa-code-branch me-2"></i>Compare Branches
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="githubTabContent">
+            <!-- Config Validation Tab -->
+            <div class="tab-pane fade show active" id="validation" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Configuration Validation</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="validationRepo" class="form-label">Repository</label>
+                                    <div class="dropdown-container">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="validationRepoDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span id="validationRepoDisplay">Select Repository</span>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" id="validationRepoDropdownMenu">
+                                            <li class="px-3 py-2">
+                                                <input type="text" class="form-control form-control-sm" id="validationRepoSearch" placeholder="Search repositories...">
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="dropdown-item" data-value="">
+                                                <span class="text-muted">Select Repository</span>
+                                            </li>
+                                        </ul>
+                                        <input type="hidden" id="validationRepo" value="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="validationBranch" class="form-label">Branch</label>
+                                    <select class="form-select" id="validationBranch">
+                                        <option value="">Select Branch</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="validationPath" class="form-label">Path (Optional)</label>
+                                    <input type="text" class="form-control" id="validationPath" placeholder="e.g., config/">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadConfigFiles()">
+                            <i class="fas fa-search me-2"></i>Load Config Files
+                            <div class="spinner-border spinner-border-sm loading" role="status"></div>
+                        </button>
+                        
+                        <div class="mt-3">
+                            <h6>Configuration Files</h6>
+                            <div class="file-list" id="validationFileList"></div>
+                        </div>
+                        
+                        <div class="error-message" id="validationError">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="error-text"></span>
+                                <button type="button" class="btn-close btn-close-sm" onclick="$('#validationError').hide()" aria-label="Close"></button>
+                            </div>
+                        </div>
+                        <div class="success-message" id="validationSuccess"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compare Files Tab -->
+            <div class="tab-pane fade" id="compare-files" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file-code me-2"></i>Compare Files</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="compareFilesRepo" class="form-label">Repository</label>
+                                    <div class="dropdown-container">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="compareFilesRepoDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span id="compareFilesRepoDisplay">Select Repository</span>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" id="compareFilesRepoDropdownMenu">
+                                            <li class="px-3 py-2">
+                                                <input type="text" class="form-control form-control-sm" id="compareFilesRepoSearch" placeholder="Search repositories...">
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="dropdown-item" data-value="">
+                                                <span class="text-muted">Select Repository</span>
+                                            </li>
+                                        </ul>
+                                        <input type="hidden" id="compareFilesRepo" value="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="compareFilesBranch" class="form-label">Branch</label>
+                                    <select class="form-select" id="compareFilesBranch">
+                                        <option value="">Select Branch</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="compareFilesPath" class="form-label">Path (Optional)</label>
+                                    <input type="text" class="form-control" id="compareFilesPath" placeholder="e.g., config/">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadFilesForComparison()">
+                            <i class="fas fa-search me-2"></i>Load Files
+                            <div class="spinner-border spinner-border-sm loading" role="status"></div>
+                        </button>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h6>Select First File</h6>
+                                <select class="form-select" id="file1Select">
+                                    <option value="">Select File 1</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Select Second File</h6>
+                                <select class="form-select" id="file2Select">
+                                    <option value="">Select File 2</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-success mt-3" onclick="compareFiles()">
+                            <i class="fas fa-exchange-alt me-2"></i>Compare Files
+                            <div class="spinner-border spinner-border-sm loading" role="status"></div>
+                        </button>
+                        
+                        <div class="comparison-result" id="fileComparisonResult" style="display: none;"></div>
+                        
+                        <div class="error-message" id="compareFilesError">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="error-text"></span>
+                                <button type="button" class="btn-close btn-close-sm" onclick="$('#compareFilesError').hide()" aria-label="Close"></button>
+                            </div>
+                        </div>
+                        <div class="success-message" id="compareFilesSuccess"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compare Branches Tab -->
+            <div class="tab-pane fade" id="compare-branches" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-code-branch me-2"></i>Compare Branches</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="compareBranchesRepo" class="form-label">Repository</label>
+                                    <div class="dropdown-container">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="compareBranchesRepoDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span id="compareBranchesRepoDisplay">Select Repository</span>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" id="compareBranchesRepoDropdownMenu">
+                                            <li class="px-3 py-2">
+                                                <input type="text" class="form-control form-control-sm" id="compareBranchesRepoSearch" placeholder="Search repositories...">
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="dropdown-item" data-value="">
+                                                <span class="text-muted">Select Repository</span>
+                                            </li>
+                                        </ul>
+                                        <input type="hidden" id="compareBranchesRepo" value="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="sourceBranch" class="form-label">Source Branch</label>
+                                    <select class="form-select" id="sourceBranch">
+                                        <option value="">Select Source Branch</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="targetBranch" class="form-label">Target Branch</label>
+                                    <select class="form-select" id="targetBranch">
+                                        <option value="">Select Target Branch</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="branchComparePath" class="form-label">Path (Optional)</label>
+                                    <input type="text" class="form-control" id="branchComparePath" placeholder="e.g., config/">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadFilesForBranchComparison()">
+                            <i class="fas fa-search me-2"></i>Load Files
+                            <div class="spinner-border spinner-border-sm loading" role="status"></div>
+                        </button>
+                        
+                        <div class="mt-3">
+                            <h6>Files from Both Branches</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary">Source Branch Files</h6>
+                                    <div id="sourceBranchFiles" class="file-list border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                        <p class="text-muted">Select source branch to load files</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-success">Target Branch Files</h6>
+                                    <div id="targetBranchFiles" class="file-list border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                                        <p class="text-muted">Select target branch to load files</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label for="branchCompareFile" class="form-label">Select File to Compare</label>
+                                <select class="form-select" id="branchCompareFile">
+                                    <option value="">Select File</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-success mt-3" onclick="compareBranches()">
+                            <i class="fas fa-exchange-alt me-2"></i>Compare Branches
+                            <div class="spinner-border spinner-border-sm loading" role="status"></div>
+                        </button>
+                        
+                        <div class="comparison-result" id="branchComparisonResult" style="display: none;"></div>
+                        
+                        <div class="error-message" id="compareBranchesError">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="error-text"></span>
+                                <button type="button" class="btn-close btn-close-sm" onclick="$('#compareBranchesError').hide()" aria-label="Close"></button>
+                            </div>
+                        </div>
+                        <div class="success-message" id="compareBranchesSuccess"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- GitHub JavaScript -->
+    <script>
+        let currentRepositories = [];
+        let currentFiles = [];
+        
+        // Initialize everything when document is ready
+        $(document).ready(function() {
+            console.log('Document ready - setting up event handlers');
+            
+            // Verify elements exist
+            console.log('Validation repo element exists:', $('#validationRepo').length > 0);
+            console.log('Compare files repo element exists:', $('#compareFilesRepo').length > 0);
+            console.log('Compare branches repo element exists:', $('#compareBranchesRepo').length > 0);
+            
+            // Set up branch loading event handlers using event delegation
+            $(document).on('change', '#validationRepo', function() {
+                const repoFullName = $(this).val();
+                console.log('Validation repo changed to:', repoFullName);
+                console.log('Selected option text:', $(this).find('option:selected').text());
+                console.log('All options:', $(this).find('option').map(function() { return {value: this.value, text: this.text}; }).get());
+                
+                if (repoFullName && repoFullName !== '') {
+                    console.log('Loading branches for repo:', repoFullName);
+                    loadBranches(repoFullName, '#validationBranch');
+                } else {
+                    console.log('No repository selected or empty value');
+                    $('#validationBranch').html('<option value="">Select Branch</option>');
+                }
+            });
+            
+            $(document).on('change', '#compareFilesRepo', function() {
+                const repoFullName = $(this).val();
+                console.log('Compare files repo changed to:', repoFullName);
+                if (repoFullName) {
+                    loadBranches(repoFullName, '#compareFilesBranch');
+                } else {
+                    $('#compareFilesBranch').html('<option value="">Select Branch</option>');
+                }
+            });
+            
+            $(document).on('change', '#compareBranchesRepo', function() {
+                const repoFullName = $(this).val();
+                console.log('Compare branches repo changed to:', repoFullName);
+                if (repoFullName) {
+                    loadBranches(repoFullName, '#sourceBranch');
+                    loadBranches(repoFullName, '#targetBranch');
+                } else {
+                    $('#sourceBranch').html('<option value="">Select Source Branch</option>');
+                    $('#targetBranch').html('<option value="">Select Target Branch</option>');
+                }
+            });
+            
+            console.log('Event handlers attached successfully');
+            
+            // Set up search functionality
+            setupRepositorySearch();
+            
+            // Load repositories after setting up event handlers
+            setTimeout(function() {
+                loadRepositories();
+            }, 100);
+        });
+        
+        function loadRepositories() {
+            console.log('Starting to load repositories...');
+            showLoading('.card-body');
+            clearMessages('.card-body');
+            
+            $.ajax({
+                url: '/api/github/repositories',
+                method: 'GET',
+                success: function(data) {
+                    console.log('Repository API response received:', data);
+                    currentRepositories = data;
+                    populateRepositoryDropdowns(data);
+                    console.log('Repositories loaded successfully:', data);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to load repositories:', error);
+                    console.error('Response status:', xhr.status);
+                    console.error('Response text:', xhr.responseText);
+                    showError('#validationError', 'Failed to load repositories. Please check your credentials. Error: ' + error);
+                },
+                complete: function() {
+                    console.log('Repository loading completed');
+                    hideLoading('.card-body');
+                }
+            });
+        }
+        
+        function populateRepositoryDropdowns(repositories) {
+            if (!repositories || repositories.length === 0) {
+                console.error('No repositories provided to populateRepositoryDropdowns');
+                return;
+            }
+            
+            console.log('Repository data sample:', repositories.slice(0, 3));
+            console.log('First repository keys:', Object.keys(repositories[0]));
+            
+            // Store repositories globally for filtering
+            window.allRepositories = repositories;
+            
+            // Populate each dropdown menu
+            populateDropdownMenu('validationRepo', repositories);
+            populateDropdownMenu('compareFilesRepo', repositories);
+            populateDropdownMenu('compareBranchesRepo', repositories);
+            
+            console.log('Repository dropdowns populated');
+        }
+        
+        function populateDropdownMenu(dropdownId, repositories) {
+            const dropdownMenu = $('#' + dropdownId + 'DropdownMenu');
+            const searchInput = $('#' + dropdownId + 'Search');
+            
+            // Clear existing items (keep search input and divider)
+            dropdownMenu.find('li:not(:first-child):not(:nth-child(2))').remove();
+            
+            // Add repository items
+            repositories.forEach(repo => {
+                const fullName = repo.fullName || repo.full_name || `${repo.owner}/${repo.name}`;
+                const description = repo.description || '';
+                const displayText = description ? `${repo.name} - ${description}` : repo.name;
+                
+                const item = $(`
+                    <li class="dropdown-item" data-value="${fullName}" data-name="${repo.name}" data-description="${description}">
+                        <span class="repo-name">${repo.name}</span>
+                        ${description ? `<small class="text-muted d-block">${description}</small>` : ''}
+                    </li>
+                `);
+                
+                dropdownMenu.append(item);
+            });
+            
+            // Set up click handlers for dropdown items
+            dropdownMenu.find('.dropdown-item').on('click', function() {
+                const value = $(this).data('value');
+                const displayText = $(this).find('.repo-name').text();
+                
+                // Update hidden input and display
+                $('#' + dropdownId).val(value);
+                $('#' + dropdownId + 'Display').text(displayText);
+                
+                // Trigger change event
+                $('#' + dropdownId).trigger('change');
+                
+                // Close dropdown
+                $('#' + dropdownId + 'Dropdown').dropdown('hide');
+            });
+            
+            // Set up search functionality
+            searchInput.off('input').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                dropdownMenu.find('.dropdown-item').each(function() {
+                    const item = $(this);
+                    const name = item.data('name').toLowerCase();
+                    const description = item.data('description').toLowerCase();
+                    const text = item.text().toLowerCase();
+                    
+                    const matches = name.includes(searchTerm) || 
+                                   description.includes(searchTerm) || 
+                                   text.includes(searchTerm);
+                    
+                    item.toggle(matches);
+                });
+            });
+        }
+        
+        function loadBranches(repoFullName, targetSelect) {
+            if (!repoFullName) {
+                console.log('No repoFullName provided to loadBranches');
+                return;
+            }
+            
+            console.log('Loading branches for repo:', repoFullName, 'target:', targetSelect);
+            
+            // Show loading state
+            $(targetSelect).html('<option value="">Loading branches...</option>');
+            
+            $.ajax({
+                url: '/api/github/branches',
+                method: 'GET',
+                data: {
+                    repoFullName: repoFullName
+                },
+                success: function(data) {
+                    console.log('Branch API response:', data);
+                    const options = '<option value="">Select Branch</option>' +
+                        data.map(branch => `<option value="${branch.name}">${branch.name}</option>`).join('');
+                    $(targetSelect).html(options);
+                    console.log('Branches loaded successfully for', repoFullName, ':', data);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to load branches for', repoFullName, ':', error);
+                    console.error('Response status:', xhr.status);
+                    console.error('Response text:', xhr.responseText);
+                    $(targetSelect).html('<option value="">Error loading branches</option>');
+                    
+                    // Show error in the appropriate tab
+                    const tabId = $(targetSelect).closest('.tab-pane').attr('id');
+                    if (tabId === 'validation') {
+                        showError('#validationError', 'Failed to load branches: ' + error);
+                    } else if (tabId === 'compare-files') {
+                        showError('#compareFilesError', 'Failed to load branches: ' + error);
+                    } else if (tabId === 'compare-branches') {
+                        showError('#compareBranchesError', 'Failed to load branches: ' + error);
+                    }
+                }
+            });
+        }
+        
+        function loadConfigFiles() {
+            const repoFullName = $('#validationRepo').val();
+            const branch = $('#validationBranch').val();
+            const path = $('#validationPath').val();
+            
+            if (!repoFullName || !branch) {
+                showError('#validationError', 'Please select repository and branch');
+                return;
+            }
+            
+            showLoading('#validation .btn');
+            // Don't clear messages immediately - let them persist until new operation completes
+            
+            $.ajax({
+                url: '/api/github/config-files',
+                method: 'GET',
+                data: {
+                    repoFullName: repoFullName,
+                    branch: branch,
+                    path: path
+                },
+                success: function(data) {
+                    displayConfigFiles(data);
+                    showSuccess('#validationSuccess', 'Config files loaded successfully');
+                    // Clear previous error messages only on success
+                    $('#validationError').hide();
+                },
+                error: function() {
+                    showError('#validationError', 'Failed to load config files');
+                },
+                complete: function() {
+                    hideLoading('#validation .btn');
+                }
+            });
+        }
+        
+        function displayConfigFiles(files) {
+            const fileList = $('#validationFileList');
+            if (files.length === 0) {
+                fileList.html('<p class="text-muted">No configuration files found</p>');
+                return;
+            }
+            
+            const fileItems = files.map(file => `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h6 class="card-title">${file.name}</h6>
+                        <p class="card-text text-muted">${file.path}</p>
+                        <button class="btn btn-sm btn-primary" onclick="validateFile('${file.path}')">
+                            <i class="fas fa-check me-1"></i>Validate
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            fileList.html(fileItems);
+        }
+        
+        function validateFile(filePath) {
+            const repoFullName = $('#validationRepo').val();
+            const branch = $('#validationBranch').val();
+            
+            // Clear previous success message but keep error messages visible
+            $('#validationSuccess').hide();
+            
+            // First, get the file content
+            $.ajax({
+                url: '/api/github/file-content',
+                method: 'GET',
+                data: {
+                    repoFullName: repoFullName,
+                    branch: branch,
+                    filePath: filePath
+                },
+                success: function(fileData) {
+                    // Display the file content
+                    displayFileContent(filePath, fileData.content);
+                    
+                    // Now validate the file
+                    $.ajax({
+                        url: '/api/github/validate',
+                        method: 'POST',
+                        data: {
+                            repoFullName: repoFullName,
+                            branch: branch,
+                            filePath: filePath
+                        },
+                        success: function(validationData) {
+                            if (validationData.valid) {
+                                showSuccess('#validationSuccess', `File ${filePath} is valid`);
+                                // Clear any previous error messages on success
+                                $('#validationError').hide();
+                            } else {
+                                showError('#validationError', `File ${filePath} is invalid: ${validationData.errorMessage}`);
+                            }
+                        },
+                        error: function() {
+                            showError('#validationError', 'Failed to validate file');
+                        }
+                    });
+                },
+                error: function() {
+                    showError('#validationError', 'Failed to load file content');
+                }
+            });
+        }
+        
+        function displayFileContent(filePath, content) {
+            const fileExtension = filePath.split('.').pop().toLowerCase();
+            let formattedContent = content;
+            
+            // Try to format JSON/YAML for better display
+            if (fileExtension === 'json') {
+                try {
+                    const parsed = JSON.parse(content);
+                    formattedContent = JSON.stringify(parsed, null, 2);
+                } catch (e) {
+                    // If parsing fails, use original content
+                    formattedContent = content;
+                }
+            } else if (fileExtension === 'yml' || fileExtension === 'yaml') {
+                // YAML is already formatted, just use as is
+                formattedContent = content;
+            }
+            
+            const fileContentHtml = `
+                <div class="mt-3">
+                    <h6>File Content: ${filePath}</h6>
+                    <div class="file-content-display">
+                        <pre class="bg-light p-3 rounded border"><code>${escapeHtml(formattedContent)}</code></pre>
+                    </div>
+                </div>
+            `;
+            
+            // Remove any existing file content display
+            $('.file-content-display').remove();
+            
+            // Add the new file content display after the file list
+            $('#validationFileList').after(fileContentHtml);
+        }
+        
+        function loadFilesForComparison() {
+            const repoFullName = $('#compareFilesRepo').val();
+            const branch = $('#compareFilesBranch').val();
+            const path = $('#compareFilesPath').val();
+            
+            console.log('=== LOAD FILES FOR COMPARISON ===');
+            console.log('Repository:', repoFullName);
+            console.log('Branch:', branch);
+            console.log('Path:', path);
+            
+            if (!repoFullName || !branch) {
+                console.log('Validation failed - missing repository or branch');
+                showError('#compareFilesError', 'Please select repository and branch');
+                return;
+            }
+            
+            showLoading('#compare-files .btn');
+            // Don't clear messages immediately - let them persist
+            
+            console.log('Making API request to /api/github/files with data:', {
+                repoFullName: repoFullName,
+                branch: branch,
+                path: path
+            });
+            
+            $.ajax({
+                url: '/api/github/files',
+                method: 'GET',
+                data: {
+                    repoFullName: repoFullName,
+                    branch: branch,
+                    path: path
+                },
+                success: function(data) {
+                    console.log('=== FILES LOADED SUCCESS ===');
+                    console.log('Raw response data:', data);
+                    console.log('Total files received:', data.length);
+                    
+                    // Filter config files using JavaScript logic
+                    currentFiles = data.filter(file => isConfigFile(file));
+                    console.log('Config files filtered:', currentFiles.length);
+                    console.log('Config files:', currentFiles);
+                    
+                    populateFileDropdowns();
+                    showSuccess('#compareFilesSuccess', `Files loaded successfully. Found ${currentFiles.length} config files.`);
+                    // Clear previous error messages on success
+                    $('#compareFilesError').hide();
+                },
+                error: function(xhr, status, error) {
+                    console.error('=== FILES LOAD ERROR ===');
+                    console.error('XHR status:', xhr.status);
+                    console.error('XHR status text:', xhr.statusText);
+                    console.error('Error:', error);
+                    console.error('Response text:', xhr.responseText);
+                    showError('#compareFilesError', 'Failed to load files: ' + error);
+                },
+                complete: function() {
+                    console.log('AJAX request completed');
+                    hideLoading('#compare-files .btn');
+                }
+            });
+        }
+        
+        function populateFileDropdowns() {
+            console.log('=== POPULATE FILE DROPDOWNS ===');
+            console.log('Current files:', currentFiles);
+            console.log('Number of files:', currentFiles.length);
+            
+            const options = '<option value="">Select File</option>' +
+                currentFiles.map(file => `<option value="${file.path}">${file.name}</option>`).join('');
+            
+            console.log('Generated options HTML:', options);
+            $('#file1Select, #file2Select').html(options);
+            
+            console.log('File1 dropdown options:', $('#file1Select option').map(function() { return {value: this.value, text: this.text}; }).get());
+            console.log('File2 dropdown options:', $('#file2Select option').map(function() { return {value: this.value, text: this.text}; }).get());
+        }
+        
+        function compareFiles() {
+            const file1 = $('#file1Select').val();
+            const file2 = $('#file2Select').val();
+            
+            if (!file1 || !file2) {
+                showError('#compareFilesError', 'Please select both files');
+                return;
+            }
+            
+            if (file1 === file2) {
+                showError('#compareFilesError', 'Please select different files');
+                return;
+            }
+            
+            const repoFullName = $('#compareFilesRepo').val();
+            const branch = $('#compareFilesBranch').val();
+            
+            showLoading('#compare-files .btn-success');
+            
+            $.ajax({
+                url: '/api/github/compare-files',
+                method: 'POST',
+                data: {
+                    repoFullName: repoFullName,
+                    branch: branch,
+                    filePath1: file1,
+                    filePath2: file2
+                },
+                success: function(data) {
+                    displayComparisonResult(data, '#fileComparisonResult');
+                    showSuccess('#compareFilesSuccess', 'Files compared successfully');
+                },
+                error: function() {
+                    showError('#compareFilesError', 'Failed to compare files');
+                },
+                complete: function() {
+                    hideLoading('#compare-files .btn-success');
+                }
+            });
+        }
+        
+        function loadFilesForBranchComparison() {
+            const repoFullName = $('#compareBranchesRepo').val();
+            const sourceBranch = $('#sourceBranch').val();
+            const targetBranch = $('#targetBranch').val();
+            const path = $('#branchComparePath').val();
+            
+            console.log('Loading files for branch comparison:', { repoFullName, sourceBranch, targetBranch, path });
+            
+            if (!repoFullName || !sourceBranch || !targetBranch) {
+                showError('#compareBranchesError', 'Please select repository and both branches');
+                return;
+            }
+            
+            if (sourceBranch === targetBranch) {
+                showError('#compareBranchesError', 'Please select different branches');
+                return;
+            }
+            
+            showLoading('#compare-branches .btn');
+            // Don't clear messages immediately - let them persist
+            
+            // Load files from both branches
+            const loadSourceFiles = $.ajax({
+                url: '/api/github/files',
+                method: 'GET',
+                data: {
+                    repoFullName: repoFullName,
+                    branch: sourceBranch,
+                    path: path
+                }
+            });
+            
+            const loadTargetFiles = $.ajax({
+                url: '/api/github/files',
+                method: 'GET',
+                data: {
+                    repoFullName: repoFullName,
+                    branch: targetBranch,
+                    path: path
+                }
+            });
+            
+            // Wait for both requests to complete
+            $.when(loadSourceFiles, loadTargetFiles).done(function(sourceData, targetData) {
+                console.log('Source branch files:', sourceData[0]);
+                console.log('Target branch files:', targetData[0]);
+                
+                const sourceConfigFiles = sourceData[0].filter(file => isConfigFile(file));
+                const targetConfigFiles = targetData[0].filter(file => isConfigFile(file));
+                
+                console.log('Source config files found:', sourceConfigFiles.length);
+                console.log('Target config files found:', targetConfigFiles.length);
+                
+                // Display files from both branches
+                displayBranchFiles('#sourceBranchFiles', sourceConfigFiles, sourceBranch);
+                displayBranchFiles('#targetBranchFiles', targetConfigFiles, targetBranch);
+                
+                // Create combined file list for dropdown
+                const allFiles = [...new Set([...sourceConfigFiles, ...targetConfigFiles].map(file => file.path))];
+                const options = '<option value="">Select File</option>' +
+                    allFiles.map(filePath => {
+                        const sourceFile = sourceConfigFiles.find(f => f.path === filePath);
+                        const targetFile = targetConfigFiles.find(f => f.path === filePath);
+                        const fileName = sourceFile ? sourceFile.name : targetFile.name;
+                        const status = sourceFile && targetFile ? 'Both branches' : 
+                                     sourceFile ? 'Source only' : 'Target only';
+                        return `<option value="${filePath}">${fileName} (${status})</option>`;
+                    }).join('');
+                
+                $('#branchCompareFile').html(options);
+                showSuccess('#compareBranchesSuccess', `Files loaded from both branches. Source: ${sourceConfigFiles.length}, Target: ${targetConfigFiles.length}`);
+                $('#compareBranchesError').hide();
+                
+            }).fail(function(xhr, status, error) {
+                console.error('Failed to load files for branch comparison:', { xhr, status, error });
+                showError('#compareBranchesError', 'Failed to load files: ' + error);
+            }).always(function() {
+                hideLoading('#compare-branches .btn');
+            });
+        }
+        
+        function compareBranches() {
+            const filePath = $('#branchCompareFile').val();
+            const sourceBranch = $('#sourceBranch').val();
+            const targetBranch = $('#targetBranch').val();
+            
+            console.log('=== COMPARE BRANCHES DEBUG ===');
+            console.log('File path:', filePath);
+            console.log('Source branch:', sourceBranch);
+            console.log('Target branch:', targetBranch);
+            console.log('File dropdown options:', $('#branchCompareFile option').map(function() { return {value: this.value, text: this.text}; }).get());
+            
+            if (!filePath || !sourceBranch || !targetBranch) {
+                console.log('Validation failed - missing required fields');
+                showError('#compareBranchesError', 'Please select file and both branches');
+                return;
+            }
+            
+            if (sourceBranch === targetBranch) {
+                console.log('Validation failed - same branches selected');
+                showError('#compareBranchesError', 'Please select different branches');
+                return;
+            }
+            
+            const repoFullName = $('#compareBranchesRepo').val();
+            console.log('Repository:', repoFullName);
+            console.log('All form values:', {
+                repoFullName: repoFullName,
+                sourceBranch: sourceBranch,
+                targetBranch: targetBranch,
+                filePath: filePath
+            });
+            
+            showLoading('#compare-branches .btn-success');
+            console.log('Loading spinner shown');
+            
+            $.ajax({
+                url: '/api/github/compare-branches',
+                method: 'POST',
+                data: {
+                    repoFullName: repoFullName,
+                    sourceBranch: sourceBranch,
+                    targetBranch: targetBranch,
+                    filePath: filePath
+                },
+                success: function(data) {
+                    console.log('=== COMPARISON SUCCESS ===');
+                    console.log('Raw response data:', data);
+                    console.log('Response type:', typeof data);
+                    console.log('Has differences:', data.hasDifferences);
+                    console.log('Differences count:', data.differences ? data.differences.length : 'undefined');
+                    console.log('Differences array:', data.differences);
+                    
+                    displayComparisonResult(data, '#branchComparisonResult');
+                    showSuccess('#compareBranchesSuccess', 'Branches compared successfully');
+                    console.log('Success message shown');
+                },
+                error: function(xhr, status, error) {
+                    console.error('=== COMPARISON ERROR ===');
+                    console.error('XHR status:', xhr.status);
+                    console.error('XHR status text:', xhr.statusText);
+                    console.error('Error:', error);
+                    console.error('Response text:', xhr.responseText);
+                    console.error('Response headers:', xhr.getAllResponseHeaders());
+                    showError('#compareBranchesError', 'Failed to compare branches: ' + error);
+                },
+                complete: function() {
+                    console.log('AJAX request completed');
+                    hideLoading('#compare-branches .btn-success');
+                    console.log('Loading spinner hidden');
+                }
+            });
+        }
+        
+        function displayComparisonResult(data, resultElement) {
+            console.log('=== DISPLAY COMPARISON RESULT ===');
+            console.log('Data received:', data);
+            console.log('Result element selector:', resultElement);
+            
+            const resultDiv = $(resultElement);
+            console.log('Result div found:', resultDiv.length > 0);
+            console.log('Result div current HTML:', resultDiv.html());
+            console.log('Result div current visibility:', resultDiv.is(':visible'));
+            
+            if (!data.hasDifferences) {
+                console.log('No differences found - showing success message');
+                const noDiffHtml = '<div class="alert alert-success">No differences found</div>';
+                console.log('Setting HTML:', noDiffHtml);
+                resultDiv.html(noDiffHtml);
+            } else {
+                console.log('Differences found:', data.differences);
+                const differences = data.differences.map(diff => {
+                    // Format the values for better display
+                    const value1 = formatValue(diff.value1);
+                    const value2 = formatValue(diff.value2);
+                    
+                    return `
+                        <div class="difference-item">
+                            <div class="difference-key">
+                                <strong>${escapeHtml(diff.key)}</strong>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="difference-value value-removed">
+                                        <small class="text-muted">Old Value:</small>
+                                        <div class="value-content">${value1}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="difference-value value-added">
+                                        <small class="text-muted">New Value:</small>
+                                        <div class="value-content">${value2}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                const html = `
+                    <h6 class="mb-3">Differences Found (${data.differences.length}):</h6>
+                    ${differences}
+                `;
+                console.log('Generated HTML for differences:', html);
+                resultDiv.html(html);
+            }
+            
+            console.log('Showing result div');
+            resultDiv.show();
+            console.log('Result div shown. Current HTML:', resultDiv.html());
+            console.log('Result div visibility after show:', resultDiv.is(':visible'));
+        }
+        
+        // Function to format values for better display
+        function formatValue(value) {
+            if (value === null || value === undefined) {
+                return '<span class="text-muted">null</span>';
+            }
+            
+            if (typeof value === 'string') {
+                // Try to parse as JSON for better formatting
+                try {
+                    const parsed = JSON.parse(value);
+                    return '<pre class="mb-0"><code>' + escapeHtml(JSON.stringify(parsed, null, 2)) + '</code></pre>';
+                } catch (e) {
+                    // If not JSON, just escape and display as string
+                    return escapeHtml(value);
+                }
+            }
+            
+            // For other types, convert to string and escape
+            return escapeHtml(String(value));
+        }
+        
+        // Function to escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Common utility functions
+        function showLoading(element) {
+            $(element).find('.loading').show();
+        }
+        
+        function hideLoading(element) {
+            $(element).find('.loading').hide();
+        }
+        
+        function showError(element, message) {
+            $(element).text(message).show();
+            setTimeout(() => {
+                $(element).hide();
+            }, 5000);
+        }
+        
+        function showSuccess(element, message) {
+            $(element).text(message).show();
+            setTimeout(() => {
+                $(element).hide();
+            }, 3000);
+        }
+        
+        function clearMessages(element) {
+            $(element).find('.error-message, .success-message').hide();
+        }
+        
+        // Manual test function for debugging
+        function testBranchLoading() {
+            console.log('Testing branch loading...');
+            const testRepo = 'ravivamsi/configcompare';
+            loadBranches(testRepo, '#validationBranch');
+        }
+        
+        // Manual test function for branch comparison
+        function testBranchComparison() {
+            console.log('=== TESTING BRANCH COMPARISON ===');
+            console.log('Current form values:');
+            console.log('- Repository:', $('#compareBranchesRepo').val());
+            console.log('- Source Branch:', $('#sourceBranch').val());
+            console.log('- Target Branch:', $('#targetBranch').val());
+            console.log('- File:', $('#branchCompareFile').val());
+            console.log('- Result div exists:', $('#branchComparisonResult').length > 0);
+            console.log('- Result div visible:', $('#branchComparisonResult').is(':visible'));
+            console.log('- Result div HTML:', $('#branchComparisonResult').html());
+            
+            // Test with sample data
+            const testData = {
+                hasDifferences: true,
+                differences: [
+                    { key: "test.key", value1: "old value", value2: "new value" }
+                ]
+            };
+            
+            console.log('Testing with sample data:', testData);
+            displayComparisonResult(testData, '#branchComparisonResult');
+        }
+        
+        // Manual test function for file loading
+        function testFileLoading() {
+            console.log('=== TESTING FILE LOADING ===');
+            console.log('Current form values:');
+            console.log('- Repository:', $('#compareFilesRepo').val());
+            console.log('- Branch:', $('#compareFilesBranch').val());
+            console.log('- Path:', $('#compareFilesPath').val());
+            console.log('- File1 dropdown exists:', $('#file1Select').length > 0);
+            console.log('- File2 dropdown exists:', $('#file2Select').length > 0);
+            console.log('- File1 dropdown options:', $('#file1Select option').length);
+            console.log('- File2 dropdown options:', $('#file2Select option').length);
+            
+            // Test the file loading function
+            loadFilesForComparison();
+        }
+        
+        // Manual test function for improved diff display
+        function testImprovedDiff() {
+            console.log('=== TESTING IMPROVED DIFF DISPLAY ===');
+            
+            const testData = {
+                hasDifferences: true,
+                differences: [
+                    { 
+                        key: "server.port", 
+                        value1: "8080", 
+                        value2: "9090" 
+                    },
+                    { 
+                        key: "database.url", 
+                        value1: "jdbc:mysql://localhost:3306/olddb", 
+                        value2: "jdbc:mysql://localhost:3306/newdb" 
+                    },
+                    { 
+                        key: "logging.level", 
+                        value1: "INFO", 
+                        value2: "DEBUG" 
+                    },
+                    { 
+                        key: "complex.object", 
+                        value1: '{"name":"old","enabled":false}', 
+                        value2: '{"name":"new","enabled":true,"version":"1.0"}' 
+                    }
+                ]
+            };
+            
+            console.log('Testing with sample data:', testData);
+            displayComparisonResult(testData, '#fileComparisonResult');
+        }
+        
+        // Function to check if a file is a config file
+        function isConfigFile(file) {
+            if (!file.name) return false;
+            
+            const extension = file.name.toLowerCase().split('.').pop();
+            return extension === 'json' || extension === 'yml' || 
+                   extension === 'yaml' || extension === 'properties';
+        }
+        
+        // Function to display files from a specific branch
+        function displayBranchFiles(containerId, files, branchName) {
+            const container = $(containerId);
+            
+            if (files.length === 0) {
+                container.html(`<p class="text-muted">No config files found in ${branchName}</p>`);
+                return;
+            }
+            
+            const fileItems = files.map(file => `
+                <div class="file-item mb-2 p-2 border rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${file.name}</strong>
+                            <br><small class="text-muted">${file.path}</small>
+                        </div>
+                        <span class="badge bg-primary">${branchName}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.html(fileItems);
+        }
+        
+        // Function to manually trigger repository change
+        function triggerRepoChange() {
+            console.log('Manually triggering repository change...');
+            $('#validationRepo').val('ravivamsi/configcompare').trigger('change');
+        }
+        
+        // Function to test the problematic repository
+        function testApiautomator() {
+            console.log('Testing apiautomator repository...');
+            $('#validationRepo').val('ravivamsi/apiautomator').trigger('change');
+        }
+        
+        // Function to debug dropdown state
+        function debugDropdowns() {
+            console.log('=== Dropdown Debug Info ===');
+            console.log('Validation repo element exists:', $('#validationRepo').length > 0);
+            console.log('Validation repo current value:', $('#validationRepo').val());
+            console.log('Validation repo options:', $('#validationRepo option').map(function() { 
+                return {value: this.value, text: this.text}; 
+            }).get());
+            console.log('Current repositories:', currentRepositories);
+        }
+        
+        // Function to set up repository search functionality
+        function setupRepositorySearch() {
+            // Search functionality is now handled in populateDropdownMenu
+            console.log('Search functionality will be set up when repositories are loaded');
+        }
+        
+        // Function to force reload repositories
+        function forceReloadRepositories() {
+            console.log('=== Force Reloading Repositories ===');
+            loadRepositories();
+        }
+        
+        // Function to manually populate dropdowns
+        function manualPopulateDropdowns() {
+            console.log('=== Manually Populating Dropdowns ===');
+            if (currentRepositories && currentRepositories.length > 0) {
+                populateRepositoryDropdowns(currentRepositories);
+            } else {
+                console.error('No repositories available to populate');
+            }
+        }
+        
+        // Function to test the entire flow
+        function testFullFlow() {
+            console.log('=== Testing Full Flow ===');
+            console.log('1. Current repositories:', currentRepositories);
+            console.log('2. Validation repo element exists:', $('#validationRepo').length > 0);
+            console.log('3. Validation repo options count:', $('#validationRepo option').length);
+            console.log('4. Validation repo current value:', $('#validationRepo').val());
+            console.log('5. All validation repo options:', $('#validationRepo option').map(function() { 
+                return {value: this.value, text: this.text}; 
+            }).get());
+            
+            // Try to manually set a repository
+            console.log('6. Setting repository to ravivamsi/apiautomator...');
+            $('#validationRepo').val('ravivamsi/apiautomator');
+            console.log('7. New value:', $('#validationRepo').val());
+            
+            // Trigger the change event
+            console.log('8. Triggering change event...');
+            $('#validationRepo').trigger('change');
+        }
+        
+        // Function to inspect dropdown options in detail
+        function inspectDropdownOptions() {
+            console.log('=== Inspecting Dropdown Options ===');
+            const options = $('#validationRepo option');
+            console.log('Total options:', options.length);
+            
+            for (let i = 0; i < options.length; i++) {
+                const option = options[i];
+                console.log(`Option ${i}: value="${option.value}", text="${option.text}"`);
+            }
+            
+            // Check if ravivamsi/apiautomator exists
+            const targetOption = $('#validationRepo option[value="ravivamsi/apiautomator"]');
+            console.log('Option with value "ravivamsi/apiautomator" exists:', targetOption.length > 0);
+            
+            // Check if apiautomator exists
+            const apiautomatorOption = $('#validationRepo option[value="apiautomator"]');
+            console.log('Option with value "apiautomator" exists:', apiautomatorOption.length > 0);
+        }
+    </script>
+</body>
+</html> 
