@@ -304,9 +304,21 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="validationBranch" class="form-label">Branch</label>
-                                    <select class="form-select" id="validationBranch">
-                                        <option value="">Select Branch</option>
-                                    </select>
+                                    <div class="dropdown-container">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="validationBranchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span id="validationBranchDisplay">Select Branch</span>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" id="validationBranchDropdownMenu">
+                                            <li class="px-3 py-2">
+                                                <input type="text" class="form-control form-control-sm" id="validationBranchSearch" placeholder="Search branches...">
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="dropdown-item" data-value="">
+                                                <span class="text-muted">Select Branch</span>
+                                            </li>
+                                        </ul>
+                                        <input type="hidden" id="validationBranch" value="">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -368,9 +380,21 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="compareFilesBranch" class="form-label">Branch</label>
-                                    <select class="form-select" id="compareFilesBranch">
-                                        <option value="">Select Branch</option>
-                                    </select>
+                                    <div class="dropdown-container">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="compareFilesBranchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span id="compareFilesBranchDisplay">Select Branch</span>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" id="compareFilesBranchDropdownMenu">
+                                            <li class="px-3 py-2">
+                                                <input type="text" class="form-control form-control-sm" id="compareFilesBranchSearch" placeholder="Search branches...">
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="dropdown-item" data-value="">
+                                                <span class="text-muted">Select Branch</span>
+                                            </li>
+                                        </ul>
+                                        <input type="hidden" id="compareFilesBranch" value="">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -449,17 +473,41 @@
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="sourceBranch" class="form-label">Source Branch</label>
-                                    <select class="form-select" id="sourceBranch">
-                                        <option value="">Select Source Branch</option>
-                                    </select>
+                                    <div class="dropdown-container">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="sourceBranchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span id="sourceBranchDisplay">Select Source Branch</span>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" id="sourceBranchDropdownMenu">
+                                            <li class="px-3 py-2">
+                                                <input type="text" class="form-control form-control-sm" id="sourceBranchSearch" placeholder="Search branches...">
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="dropdown-item" data-value="">
+                                                <span class="text-muted">Select Source Branch</span>
+                                            </li>
+                                        </ul>
+                                        <input type="hidden" id="sourceBranch" value="">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="targetBranch" class="form-label">Target Branch</label>
-                                    <select class="form-select" id="targetBranch">
-                                        <option value="">Select Target Branch</option>
-                                    </select>
+                                    <div class="dropdown-container">
+                                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="targetBranchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span id="targetBranchDisplay">Select Target Branch</span>
+                                        </button>
+                                        <ul class="dropdown-menu w-100" id="targetBranchDropdownMenu">
+                                            <li class="px-3 py-2">
+                                                <input type="text" class="form-control form-control-sm" id="targetBranchSearch" placeholder="Search branches...">
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li class="dropdown-item" data-value="">
+                                                <span class="text-muted">Select Target Branch</span>
+                                            </li>
+                                        </ul>
+                                        <input type="hidden" id="targetBranch" value="">
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -541,15 +589,14 @@
             $(document).on('change', '#validationRepo', function() {
                 const repoFullName = $(this).val();
                 console.log('Validation repo changed to:', repoFullName);
-                console.log('Selected option text:', $(this).find('option:selected').text());
-                console.log('All options:', $(this).find('option').map(function() { return {value: this.value, text: this.text}; }).get());
                 
                 if (repoFullName && repoFullName !== '') {
                     console.log('Loading branches for repo:', repoFullName);
                     loadBranches(repoFullName, '#validationBranch');
                 } else {
                     console.log('No repository selected or empty value');
-                    $('#validationBranch').html('<option value="">Select Branch</option>');
+                    $('#validationBranchDisplay').text('Select Branch');
+                    $('#validationBranch').val('');
                 }
             });
             
@@ -559,7 +606,8 @@
                 if (repoFullName) {
                     loadBranches(repoFullName, '#compareFilesBranch');
                 } else {
-                    $('#compareFilesBranch').html('<option value="">Select Branch</option>');
+                    $('#compareFilesBranchDisplay').text('Select Branch');
+                    $('#compareFilesBranch').val('');
                 }
             });
             
@@ -570,8 +618,10 @@
                     loadBranches(repoFullName, '#sourceBranch');
                     loadBranches(repoFullName, '#targetBranch');
                 } else {
-                    $('#sourceBranch').html('<option value="">Select Source Branch</option>');
-                    $('#targetBranch').html('<option value="">Select Target Branch</option>');
+                    $('#sourceBranchDisplay').text('Select Source Branch');
+                    $('#sourceBranch').val('');
+                    $('#targetBranchDisplay').text('Select Target Branch');
+                    $('#targetBranch').val('');
                 }
             });
             
@@ -587,27 +637,39 @@
         });
         
         function loadRepositories() {
-            console.log('Starting to load repositories...');
+            console.log('Starting to load repositories from JSON file...');
             showLoading('.card-body');
             clearMessages('.card-body');
             
             $.ajax({
-                url: '/api/github/repositories',
+                url: '/repos.json',
                 method: 'GET',
+                dataType: 'json',
                 success: function(data) {
-                    console.log('Repository API response received:', data);
-                    currentRepositories = data;
-                    populateRepositoryDropdowns(data);
-                    console.log('Repositories loaded successfully:', data);
+                    console.log('Repository JSON file loaded:', data);
+                    
+                    // Transform the JSON data to match the expected format
+                    const repositories = data.map(repo => ({
+                        name: repo.repoFullName.split('/')[1], // Extract repo name from full name
+                        fullName: repo.repoFullName,
+                        owner: repo.repoFullName.split('/')[0], // Extract owner from full name
+                        description: `Repository: ${repo.repoFullName}`,
+                        full_name: repo.repoFullName
+                    }));
+                    
+                    console.log('Transformed repositories:', repositories);
+                    currentRepositories = repositories;
+                    populateRepositoryDropdowns(repositories);
+                    console.log('Repositories loaded successfully from JSON file');
                 },
                 error: function(xhr, status, error) {
-                    console.error('Failed to load repositories:', error);
+                    console.error('Failed to load repositories from JSON file:', error);
                     console.error('Response status:', xhr.status);
                     console.error('Response text:', xhr.responseText);
-                    showError('#validationError', 'Failed to load repositories. Please check your credentials. Error: ' + error);
+                    showError('#validationError', 'Failed to load repositories from JSON file. Error: ' + error);
                 },
                 complete: function() {
-                    console.log('Repository loading completed');
+                    console.log('Repository loading from JSON file completed');
                     hideLoading('.card-body');
                 }
             });
@@ -698,8 +760,14 @@
             
             console.log('Loading branches for repo:', repoFullName, 'target:', targetSelect);
             
+            // Extract the dropdown ID from the target selector
+            const dropdownId = targetSelect.replace('#', '');
+            const dropdownMenu = $('#' + dropdownId + 'DropdownMenu');
+            const displayElement = $('#' + dropdownId + 'Display');
+            
             // Show loading state
-            $(targetSelect).html('<option value="">Loading branches...</option>');
+            displayElement.text('Loading branches...');
+            dropdownMenu.find('li:not(:first-child):not(:nth-child(2))').remove();
             
             $.ajax({
                 url: '/api/github/branches',
@@ -709,19 +777,23 @@
                 },
                 success: function(data) {
                     console.log('Branch API response:', data);
-                    const options = '<option value="">Select Branch</option>' +
-                        data.map(branch => `<option value="${branch.name}">${branch.name}</option>`).join('');
-                    $(targetSelect).html(options);
+                    
+                    // Store branches globally for filtering
+                    window.allBranches = data;
+                    
+                    // Populate the dropdown menu
+                    populateBranchDropdownMenu(dropdownId, data);
+                    
                     console.log('Branches loaded successfully for', repoFullName, ':', data);
                 },
                 error: function(xhr, status, error) {
                     console.error('Failed to load branches for', repoFullName, ':', error);
                     console.error('Response status:', xhr.status);
                     console.error('Response text:', xhr.responseText);
-                    $(targetSelect).html('<option value="">Error loading branches</option>');
+                    displayElement.text('Error loading branches');
                     
                     // Show error in the appropriate tab
-                    const tabId = $(targetSelect).closest('.tab-pane').attr('id');
+                    const tabId = $('#' + dropdownId).closest('.tab-pane').attr('id');
                     if (tabId === 'validation') {
                         showError('#validationError', 'Failed to load branches: ' + error);
                     } else if (tabId === 'compare-files') {
@@ -731,6 +803,55 @@
                     }
                 }
             });
+        }
+        
+        function populateBranchDropdownMenu(dropdownId, branches) {
+            const dropdownMenu = $('#' + dropdownId + 'DropdownMenu');
+            const searchInput = $('#' + dropdownId + 'Search');
+            
+            // Clear existing items (keep search input and divider)
+            dropdownMenu.find('li:not(:first-child):not(:nth-child(2))').remove();
+            
+            // Add branch items
+            branches.forEach(branch => {
+                const item = $(`
+                    <li class="dropdown-item" data-value="${branch.name}">
+                        <span class="branch-name">${branch.name}</span>
+                    </li>
+                `);
+                
+                dropdownMenu.append(item);
+            });
+            
+            // Set up click handlers for dropdown items
+            dropdownMenu.find('.dropdown-item').on('click', function() {
+                const value = $(this).data('value');
+                const displayText = $(this).find('.branch-name').text();
+                
+                // Update hidden input and display
+                $('#' + dropdownId).val(value);
+                $('#' + dropdownId + 'Display').text(displayText);
+                
+                // Trigger change event
+                $('#' + dropdownId).trigger('change');
+                
+                // Close dropdown
+                $('#' + dropdownId + 'Dropdown').dropdown('hide');
+            });
+            
+            // Set up search functionality
+            searchInput.off('input').on('input', function() {
+                const searchTerm = $(this).val().toLowerCase();
+                dropdownMenu.find('.dropdown-item').each(function() {
+                    const item = $(this);
+                    const branchName = item.find('.branch-name').text().toLowerCase();
+                    const matches = branchName.includes(searchTerm);
+                    item.toggle(matches);
+                });
+            });
+            
+            // Reset display text
+            $('#' + dropdownId + 'Display').text('Select Branch');
         }
         
         function loadConfigFiles() {
@@ -1404,9 +1525,9 @@
             console.log('Search functionality will be set up when repositories are loaded');
         }
         
-        // Function to force reload repositories
+        // Function to force reload repositories from JSON file
         function forceReloadRepositories() {
-            console.log('=== Force Reloading Repositories ===');
+            console.log('=== Force Reloading Repositories from JSON File ===');
             loadRepositories();
         }
         
@@ -1459,6 +1580,67 @@
             // Check if apiautomator exists
             const apiautomatorOption = $('#validationRepo option[value="apiautomator"]');
             console.log('Option with value "apiautomator" exists:', apiautomatorOption.length > 0);
+        }
+        
+        // Function to test JSON file loading
+        function testJsonLoading() {
+            console.log('=== Testing JSON File Loading ===');
+            $.ajax({
+                url: '/repos.json',
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    console.log('JSON file loaded successfully:', data);
+                    console.log('Number of repositories:', data.length);
+                    data.forEach((repo, index) => {
+                        console.log(`Repository ${index + 1}:`, repo.repoFullName);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to load JSON file:', error);
+                    console.error('Response status:', xhr.status);
+                    console.error('Response text:', xhr.responseText);
+                }
+            });
+        }
+        
+        // Function to test branch loading
+        function testBranchLoading() {
+            console.log('=== Testing Branch Loading ===');
+            const testRepo = 'ravivamsi/configcompare';
+            console.log('Testing branch loading for repository:', testRepo);
+            
+            $.ajax({
+                url: '/api/github/branches',
+                method: 'GET',
+                data: {
+                    repoFullName: testRepo
+                },
+                success: function(data) {
+                    console.log('Branch API response:', data);
+                    console.log('Number of branches:', data.length);
+                    data.forEach((branch, index) => {
+                        console.log(`Branch ${index + 1}:`, branch.name);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error('Failed to load branches:', error);
+                    console.error('Response status:', xhr.status);
+                    console.error('Response text:', xhr.responseText);
+                }
+            });
+        }
+        
+        // Function to test branch dropdown functionality
+        function testBranchDropdowns() {
+            console.log('=== Testing Branch Dropdowns ===');
+            console.log('Validation branch dropdown exists:', $('#validationBranch').length > 0);
+            console.log('Compare files branch dropdown exists:', $('#compareFilesBranch').length > 0);
+            console.log('Source branch dropdown exists:', $('#sourceBranch').length > 0);
+            console.log('Target branch dropdown exists:', $('#targetBranch').length > 0);
+            
+            // Test setting a repository to trigger branch loading
+            $('#validationRepo').val('ravivamsi/configcompare').trigger('change');
         }
     </script>
 </body>
